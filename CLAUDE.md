@@ -93,7 +93,10 @@ This keeps the schema clean and simple during development.
 
 The following documentation files are available in the `docs/` folder:
 
+- **AZURE_OPENAI_CONFIG.md** - Configuration guide for Azure OpenAI integration, including API setup and endpoint configuration
 - **CLI_USAGE.md** - Comprehensive guide for using Make commands, including examples for organization management, OAuth setup, user creation, and development workflows
+- **E2E_TEST_IMPLEMENTATION.md** - End-to-end testing implementation guide with test scenarios and setup instructions
+- **TEST_README.md** - Testing documentation covering unit tests, integration tests, and test execution guidelines
 
 ## Project Structure
 
