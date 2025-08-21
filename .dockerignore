@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+CONCEPT/
+
+# Development files
+.env
+.env.local
+.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test files
+*_test.go
+test/
+coverage.out
+
+# Build artifacts
+main
+*.exe
+
+# Temporary files
+tmp/
+temp/
+
+# Node modules (if any)
+node_modules/
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+
+# Backup files
+*.backup
+*.bak
+
+# Editor files
+*.tmp
+*~

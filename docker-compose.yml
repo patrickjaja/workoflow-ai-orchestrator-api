@@ -1,0 +1,184 @@
+services:
+  # AI Orchestrator API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=development
+      - APP_PORT=8080
+      - APP_NAME=ai-orchestrator-api
+      - APP_DEBUG=false
+      
+      # Database
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/ai_orchestrator?sslmode=disable
+      - DB_MAX_CONNECTIONS=100
+      - DB_MAX_IDLE_CONNECTIONS=10
+      - DB_CONNECTION_LIFETIME_SECONDS=300
+      
+      # Redis
+      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=
+      - REDIS_MAX_RETRIES=3
+      - REDIS_POOL_SIZE=10
+      
+      # Security
+      - ENCRYPTION_KEY=your-encryption-key-here-32-chars
+      - JWT_SECRET=your-jwt-secret-key-here-64-chars
+      - JWT_EXPIRY_HOURS=24
+      - JWT_REFRESH_EXPIRY_DAYS=7
+      
+      # OpenAI
+      - OPENAI_API_KEY=your-openai-api-key-here
+      - OPENAI_MODEL=gpt-4-turbo-preview
+      - OPENAI_MAX_TOKENS=2000
+      - OPENAI_TEMPERATURE=0.7
+      
+      # OAuth
+      - OAUTH_REDIRECT_BASE_URL=http://localhost:8080
+      - OAUTH_SESSION_TIMEOUT_MINUTES=10
+      
+      # N8N Integration
+      - N8N_DEFAULT_TIMEOUT_SECONDS=30
+      - N8N_MAX_RETRIES=3
+      - N8N_WEBHOOK_BASE_URL=http://n8n:5678
+      
+      # Rate Limiting
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=60
+      - RATE_LIMIT_BURST=10
+      
+      # Logging
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+      - LOG_OUTPUT=stdout
+      
+      # CORS
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      - CORS_ALLOWED_METHODS=GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS
+      - CORS_ALLOWED_HEADERS=Content-Type,Authorization,X-Requested-With,X-API-Key
+      - CORS_ALLOW_CREDENTIALS=true
+      - CORS_MAX_AGE=300
+      
+      # Server
+      - SERVER_READ_TIMEOUT_SECONDS=30
+      - SERVER_WRITE_TIMEOUT_SECONDS=30
+      - SERVER_IDLE_TIMEOUT_SECONDS=60
+      - SERVER_MAX_HEADER_BYTES=1048576
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ai-orchestrator
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=ai_orchestrator
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS=--auth-local=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ai-orchestrator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_orchestrator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ""
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai-orchestrator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # N8N Workflow Automation (Optional)
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=postgres
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+    networks:
+      - ai-orchestrator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - api
+    networks:
+      - ai-orchestrator
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  n8n_data:
+    driver: local
+
+networks:
+  ai-orchestrator:
+    driver: bridge
