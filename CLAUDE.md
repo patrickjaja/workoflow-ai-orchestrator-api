@@ -83,6 +83,17 @@ This keeps the schema clean and simple during development.
    - Implementing security improvements
    - Making infrastructure or deployment changes
    Group all changes by the current date (YYYY-MM-DD format) under the [Unreleased] section
+5. **Documentation Organization**: 
+   - ALWAYS place all documentation files in the `docs/` folder
+   - When searching for documentation, ALWAYS check the `docs/` folder first
+   - ALWAYS update the "Documentation Index" section below when creating, modifying, or deleting docs
+   - Never create documentation files outside the `docs/` folder unless explicitly requested
+
+## Documentation Index
+
+The following documentation files are available in the `docs/` folder:
+
+- **CLI_USAGE.md** - Comprehensive guide for using Make commands, including examples for organization management, OAuth setup, user creation, and development workflows
 
 ## Project Structure
 
