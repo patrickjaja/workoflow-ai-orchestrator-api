@@ -40,6 +40,15 @@ DO NOT create parallel implementations with suffixes like "_fixed", "_new", "_v2
 ALWAYS remove unused code, deprecated implementations, and redundant files.
 When fixing an issue, replace the existing implementation rather than creating an alternative version.
 
+### Security and Git Push Rule
+ALWAYS check for secrets and sensitive data before committing and pushing to GitHub:
+1. Search for hardcoded credentials, API keys, tokens, passwords, and secrets
+2. Replace any found secrets with placeholder values (e.g., "your-api-key-here")
+3. Ensure .gitignore properly excludes all sensitive files (.env, *.key, *.pem, etc.)
+4. Run a final check with: `git diff --cached | grep -E "secret|password|token|key|credential"`
+5. NEVER push real credentials, even in documentation or example files
+GitHub has push protection that will reject commits containing secrets - prevent this by checking first!
+
 ### Application and Process Management Rule
 The user will ALWAYS start and manage blocking/non-terminating processes (commands that run indefinitely and don't return control to the terminal) such as:
 - Application servers (`make run`, `go run`, etc.)
@@ -65,6 +74,15 @@ This keeps the schema clean and simple during development.
 1. **Make Commands**: When adding or modifying Makefile commands, ALWAYS update the "Available Make Commands" section in this file
 2. **Project Structure**: When adding new top-level directories, ALWAYS update the "Project Structure" section in this file
 3. Keep all documentation in this file current and synchronized with actual implementation
+4. **Changelog Updates**: ALWAYS update CHANGELOG.md when:
+   - Completing a significant feature or enhancement
+   - Fixing bugs or issues
+   - Making breaking changes
+   - Adding new dependencies or removing existing ones
+   - Modifying API endpoints or their behavior
+   - Implementing security improvements
+   - Making infrastructure or deployment changes
+   Group all changes by the current date (YYYY-MM-DD format) under the [Unreleased] section
 
 ## Project Structure
 
